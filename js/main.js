@@ -59,6 +59,53 @@ function initForm() {
     }
 }
 
+function initSectionNav() {
+    const links = document.querySelectorAll('[data-section-match]');
+    const sections = [];
+    const headerOffset = 140;
+
+    links.forEach(link => {
+        const id = link.dataset.sectionMatch;
+        const el = document.getElementById(id);
+        if (el && !sections.some(s => s.id === id)) sections.push({ el, id });
+    });
+
+    sections.sort((a, b) => a.el.offsetTop - b.el.offsetTop);
+
+    function setActive(link, isActive) {
+        link.classList.toggle('text-primary', isActive);
+        link.classList.toggle('text-slate-500', !isActive && link.classList.contains('cat-nav-link'));
+        link.classList.toggle('text-slate-600', !isActive && link.classList.contains('nav-link'));
+        link.classList.toggle('border-b-2', isActive);
+        link.classList.toggle('border-primary', isActive);
+        link.classList.toggle('pb-1', isActive);
+        if (link.classList.contains('nav-link')) {
+            link.classList.toggle('hover:text-primary', !isActive);
+        }
+    }
+
+    function updateActive() {
+        let currentId = null;
+        for (const { el, id } of sections) {
+            if (el.getBoundingClientRect().top <= headerOffset + 50) {
+                currentId = id;
+            } else break;
+        }
+
+        // Only manage Inicio on index.html
+        if (document.body.dataset.page === 'index') {
+            const atTop = window.scrollY < headerOffset + 50;
+            const inicioLink = document.querySelector('[data-page-match="index"]');
+            if (inicioLink) setActive(inicioLink, atTop && !currentId);
+        }
+
+        links.forEach(link => setActive(link, link.dataset.sectionMatch === currentId));
+    }
+
+    window.addEventListener('scroll', updateActive, { passive: true });
+    updateActive();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Suministros Impregan - Web Initialized');
 
@@ -71,4 +118,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     initScrollEffect();
     initSmoothScroll();
     initForm();
+    initSectionNav();
 });
